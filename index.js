@@ -6,13 +6,21 @@ const simplifyDebts = (transactions) => {
 
 	let targets = {}; /* targets is the object that stores entities and their values.
 						Values can be positive signalling debt and negative signalling credit { 'A' : 100 } */
+	let data = [];
 
 	transactions.forEach(transaction => {
 
+		let payingEntity = transaction[entities[0]];
 		let paidForEntites = Object.keys(transaction[entities[1]]); /* convert the keys into an array to make iterable */
+		if(paidForEntites.length == 1) {
+			let paidBy = { 'paidBy': paidForEntites[0] };
+			let paidFor = {'paidFor' : { [payingEntity] : transaction[entities[1]][paidForEntites[0]] } };
+	
+			data.push(paidBy,paidFor);
+			return;
+		}
 
 		paidForEntites.forEach(paidEntity => {
-
 
 			if (targets[paidEntity])
 				targets[paidEntity] += transaction[entities[1]][paidEntity]; /* if entity exists , add value */
@@ -35,7 +43,6 @@ const simplifyDebts = (transactions) => {
 	for (var target in targets) {
 		sortedArray.push([target, targets[target]]);  /* [ [ 'B', 0 ],[ 'F', 622 ]]	   */
 	}
-	let data = [];
 
 	while (sortedArray.filter((element) => !Boolean(element[1])).length != sortedArray.length) { /* loop runs till values of all the elements changes to 0 */
 
@@ -61,7 +68,7 @@ const simplifyDebts = (transactions) => {
 
 
 			paidBy = { 'paidBy': sortedArray[0][0] }; // so a number that that is -ive is found which is not greater than the max element
-			
+
 			paidFor[sortedArray[sortedArray.length - 1][0]] = sortedArray[0][1];
 			sortedArray[sortedArray.length - 1][1] += sortedArray[0][1];
 			sortedArray[0][1] = 0;
